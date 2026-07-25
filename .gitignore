@@ -1,0 +1,8 @@
+/vendor/
+/composer.phar
+/.env
+/credentials.json
+/token.json
+/scratch/
+/uploads/
+
