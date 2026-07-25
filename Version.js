@@ -6,5 +6,6 @@
 // バージョン更新履歴:
 // - v1.0.0 (2026-07-25): Step 1 初回環境構築、Databaseマイグレーション、プロトコルファイル初期化
 // - v1.0.1 (2026-07-25): Step 2 国税庁API、Serper APIラッパー、Python特電法スクレイパーエンジンの追加
+// - v1.0.2 (2026-07-25): Step 3 SendGrid送信エンジン、ランダムインターバル送信キュー、Webhookオプトアウト反映機能の追加
 
-window.APP_VERSION = "v1.0.1";
+window.APP_VERSION = "v1.0.2";
