@@ -7,6 +7,7 @@ J-ALG (上善如水 アライアンス・リードジェネレーター)
 
 import re
 import sys
+from typing import Tuple, List
 
 # BeautifulSoup4 の安全なインポート
 try:
@@ -33,7 +34,7 @@ OPTOUT_KEYWORDS = [
 # 無効メールアドレス除外ドメイン・キーワード
 IGNORED_EMAIL_DOMAINS = ['wix.com', 'sentry.io', 'example.com', 'xxx@', 'domain.com', '.jpg', '.png', '.css']
 
-def extract_contact_info(html_text: str):
+def extract_contact_info(html_text: str) -> Tuple[str, str]:
     """
     HTML本文からメールアドレスおよびFAX番号を抽出する
     """
@@ -48,7 +49,7 @@ def extract_contact_info(html_text: str):
     
     return (clean_emails[0] if clean_emails else None), clean_fax
 
-def check_opt_out_compliance(html_text: str) -> tuple[bool, list[str], str]:
+def check_opt_out_compliance(html_text: str) -> Tuple[bool, List[str], str]:
     """
     特定電子メール法に基づき、営業メール受信拒否の記述を検知する
     Returns: (is_opt_out: bool, detected_keywords: list[str], snippet: str)
@@ -91,8 +92,8 @@ if __name__ == "__main__":
     email, fax = extract_contact_info(sample_html)
     is_opt_out, kws, snip = check_opt_out_compliance(sample_html)
     
-    print(f"Extracted Email: {email}")
-    print(f"Extracted FAX: {fax}")
-    print(f"Is Opt Out: {is_opt_out}")
-    print(f"Detected Keywords: {kws}")
-    print(f"Snippet: {snip}")
+    print("Extracted Email: {}".format(email))
+    print("Extracted FAX: {}".format(fax))
+    print("Is Opt Out: {}".format(is_opt_out))
+    print("Detected Keywords: {}".format(kws))
+    print("Snippet: {}".format(snip))
