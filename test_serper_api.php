@@ -18,7 +18,7 @@ function getEnvParam($key, $default = null) {
                 if (strpos($line, '=') !== false) {
                     list($k, $v) = explode('=', $line, 2);
                     $val = trim($v);
-                    $val = trim($val, '"\''); // Remove quotes
+                    $val = trim($val, " \t\n\r\0\x0B\"'"); // Strip leading/trailing spaces and quotes
                     $env[trim($k)] = $val;
                 }
             }
@@ -35,7 +35,7 @@ if (empty($apiKey)) {
     exit(1);
 }
 
-echo "SERPER_API_KEY detected: " . substr($apiKey, 0, 8) . "...\n";
+echo "SERPER_API_KEY detected: [" . substr($apiKey, 0, 8) . "...] (Length: " . strlen($apiKey) . ")\n";
 
 $query = SerperSearch::buildQuery("川越建築設計事務所", "川越市");
 echo "Sending test query to Serper API: {$query}\n";
