@@ -7,7 +7,13 @@ J-ALG (上善如水 アライアンス・リードジェネレーター)
 
 import re
 import sys
-from bs4 import BeautifulSoup
+
+# BeautifulSoup4 の安全なインポート
+try:
+    from bs4 import BeautifulSoup
+    HAS_BS4 = True
+except ImportError:
+    HAS_BS4 = False
 
 # メールアドレス抽出正規表現
 EMAIL_REGEX = r'[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+'
@@ -47,11 +53,17 @@ def check_opt_out_compliance(html_text: str) -> tuple[bool, list[str], str]:
     特定電子メール法に基づき、営業メール受信拒否の記述を検知する
     Returns: (is_opt_out: bool, detected_keywords: list[str], snippet: str)
     """
-    soup = BeautifulSoup(html_text, 'html.parser')
-    for script in soup(["script", "style"]):
-        script.decompose()
-    text = soup.get_text(separator=' ')
-    
+    if HAS_BS4:
+        soup = BeautifulSoup(html_text, 'html.parser')
+        for script in soup(["script", "style"]):
+            script.decompose()
+        text = soup.get_text(separator=' ')
+    else:
+        # BS4がない場合のフォールバック（HTMLタグ除去）
+        no_script = re.sub(r'<script.*?>.*?</script>', ' ', html_text, flags=re.DOTALL | re.IGNORECASE)
+        no_style = re.sub(r'<style.*?>.*?</style>', ' ', no_script, flags=re.DOTALL | re.IGNORECASE)
+        text = re.sub(r'<[^>]+>', ' ', no_style)
+
     detected = []
     snippet = ""
     for kw in OPTOUT_KEYWORDS:
