@@ -71,12 +71,49 @@ try {
         ]);
     }
 
+    // --- Google Drive 連携処理 ---
+    $driveFolderId = null;
+    $driveFileId = null;
+    try {
+        require_once __DIR__ . '/google_drive_client.php';
+        
+        // 1. ユーザーフォルダを取得・生成
+        $userDriveFolderId = get_or_create_user_drive_folder($pdo, $user['id']);
+        
+        // 2. チケット専用フォルダを作成
+        $ticketFolderName = "Ticket_#" . $ticketId . "_" . preg_replace('/[^\w\-\.\s]/u', '_', $title);
+        $driveFolderId = create_google_drive_folder($ticketFolderName, $userDriveFolderId);
+
+        // 3. DXFファイルが存在すれば Google Drive へアップロード
+        if ($dxfSavedPath && file_exists($dxfSavedPath)) {
+            $mimeType = 'application/octet-stream';
+            $driveFileId = upload_to_google_drive_folder($dxfSavedPath, basename($dxfSavedPath), $mimeType, $driveFolderId);
+        }
+
+        // DBにDrive情報を更新
+        $updateDriveStmt = $pdo->prepare("
+            UPDATE support_tickets 
+            SET drive_folder_id = :dfid, drive_file_id = :dfileid 
+            WHERE ticket_id = :tid
+        ");
+        $updateDriveStmt->execute([
+            'dfid' => $driveFolderId,
+            'dfileid' => $driveFileId,
+            'tid' => $ticketId
+        ]);
+    } catch (Exception $driveEx) {
+        error_log("Google Drive Sync Notice: " . $driveEx->getMessage());
+        // Google Driveエラー発生時もローカル処理は成功とする（ローカルフォールバック）
+    }
+
     $pdo->commit();
 
     echo json_encode([
         'status' => 'success',
         'message' => '質疑カードを作成しました。',
-        'ticket_id' => $ticketId
+        'ticket_id' => $ticketId,
+        'drive_folder_id' => $driveFolderId,
+        'drive_file_id' => $driveFileId
     ], JSON_UNESCAPED_UNICODE);
 
 } catch (Exception $e) {

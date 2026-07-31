@@ -55,15 +55,21 @@ $mStmt = $pdo->prepare("
 $mStmt->execute(['tid' => $ticketId]);
 $messages = $mStmt->fetchAll();
 
-// ダウンロード用プロキシURL生成
+// ダウンロード用プロキシURLおよびGoogle Drive URL生成
 $dxfDownloadUrl = null;
 if (!empty($ticket['dxf_file_path'])) {
     $dxfDownloadUrl = "/api/support/download_private_file.php?ticket_id={$ticketId}&type=dxf";
 }
 
+$ticket['google_drive_file_url'] = !empty($ticket['drive_file_id']) ? "https://drive.google.com/file/d/{$ticket['drive_file_id']}/view?usp=drivesdk" : null;
+$ticket['google_drive_folder_url'] = !empty($ticket['drive_folder_id']) ? "https://drive.google.com/drive/folders/{$ticket['drive_folder_id']}" : null;
+
 foreach ($messages as &$msg) {
     if (!empty($msg['attachment_pdf_path'])) {
         $msg['pdf_download_url'] = "/api/support/download_private_file.php?ticket_id={$ticketId}&type=pdf&message_id={$msg['message_id']}";
+    }
+    if (!empty($msg['drive_file_id'])) {
+        $msg['google_drive_file_url'] = "https://drive.google.com/file/d/{$msg['drive_file_id']}/view?usp=drivesdk";
     }
 }
 unset($msg);

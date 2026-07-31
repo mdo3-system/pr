@@ -69,9 +69,28 @@ try {
     $pdo->beginTransaction();
 
     if (!empty($messageText) || $pdfSavedPath || !empty($youtubeUrl)) {
+        // Google Drive へのアップロード（PDF等）
+        $driveFileId = null;
+        if ($pdfSavedPath && file_exists($pdfSavedPath)) {
+            try {
+                require_once __DIR__ . '/google_drive_client.php';
+                $parentFolderId = $ticket['drive_folder_id'];
+                if (empty($parentFolderId)) {
+                    $userDriveFolderId = get_or_create_user_drive_folder($pdo, $ticket['user_id']);
+                    $ticketFolderName = "Ticket_#" . $ticketId . "_" . preg_replace('/[^\w\-\.\s]/u', '_', $ticket['title']);
+                    $parentFolderId = create_google_drive_folder($ticketFolderName, $userDriveFolderId);
+                    $pdo->prepare("UPDATE support_tickets SET drive_folder_id = :dfid WHERE ticket_id = :tid")
+                        ->execute(['dfid' => $parentFolderId, 'tid' => $ticketId]);
+                }
+                $driveFileId = upload_to_google_drive_folder($pdfSavedPath, basename($pdfSavedPath), 'application/pdf', $parentFolderId);
+            } catch (Exception $driveEx) {
+                error_log("Google Drive PDF Upload Notice: " . $driveEx->getMessage());
+            }
+        }
+
         $mStmt = $pdo->prepare("
-            INSERT INTO ticket_messages (ticket_id, sender_type, sender_id, message_text, attachment_pdf_path, youtube_url)
-            VALUES (:ticket_id, :sender_type, :sender_id, :message_text, :pdf_path, :youtube_url)
+            INSERT INTO ticket_messages (ticket_id, sender_type, sender_id, message_text, attachment_pdf_path, drive_file_id, youtube_url)
+            VALUES (:ticket_id, :sender_type, :sender_id, :message_text, :pdf_path, :drive_file_id, :youtube_url)
         ");
         $mStmt->execute([
             'ticket_id' => $ticketId,
@@ -79,6 +98,7 @@ try {
             'sender_id' => $user['id'],
             'message_text' => $messageText,
             'pdf_path' => $pdfSavedPath,
+            'drive_file_id' => $driveFileId,
             'youtube_url' => !empty($youtubeUrl) ? $youtubeUrl : null
         ]);
     }

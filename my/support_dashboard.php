@@ -433,13 +433,16 @@ $user = getAuthenticatedUser();
             document.getElementById('chat-ticket-title').innerText = ticket.title;
             document.getElementById('chat-ticket-category').innerText = `カテゴリ: ${ticket.category} (${ticket.created_at})`;
 
-            // Zoomボタン表示
+            // Zoomボタン & Google Drive フォルダボタン表示
             const zoomSlot = document.getElementById('zoom-button-slot');
-            if (ticket.zoom_url) {
-                zoomSlot.innerHTML = `<a href="${escapeHtml(ticket.zoom_url)}" target="_blank" class="btn-zoom">🎥 Zoomサポートに接続</a>`;
-            } else {
-                zoomSlot.innerHTML = '';
+            let actionsHtml = '';
+            if (ticket.google_drive_folder_url) {
+                actionsHtml += `<a href="${escapeHtml(ticket.google_drive_folder_url)}" target="_blank" style="background:#475569; color:#fff; text-decoration:none; padding:8px 14px; border-radius:6px; font-weight:600; font-size:0.85rem; display:inline-flex; align-items:center; gap:6px; margin-right:8px;">📁 Google Drive フォルダ</a>`;
             }
+            if (ticket.zoom_url) {
+                actionsHtml += `<a href="${escapeHtml(ticket.zoom_url)}" target="_blank" class="btn-zoom">🎥 Zoomサポートに接続</a>`;
+            }
+            zoomSlot.innerHTML = actionsHtml;
 
             // チャットタイムライン表示
             const body = document.getElementById('chat-body-container');
@@ -448,8 +451,12 @@ $user = getAuthenticatedUser();
             // DXF添付情報があれば上部にカード配置
             if (data.dxf_download_url) {
                 const dxfCard = document.createElement('div');
-                dxfCard.style.cssText = "background: #1e293b; border: 1px solid var(--accent-blue); padding: 12px; border-radius: 8px;";
-                dxfCard.innerHTML = `📐 <strong>添付DXF図面:</strong> <a href="${data.dxf_download_url}" style="color: var(--accent-blue);">DXFファイルをダウンロード</a>`;
+                dxfCard.style.cssText = "background: #1e293b; border: 1px solid var(--accent-blue); padding: 12px; border-radius: 8px; display:flex; justify-content:space-between; align-items:center;";
+                let cardInner = `<div>📐 <strong>添付DXF図面:</strong> <a href="${data.dxf_download_url}" style="color: var(--accent-blue); font-weight:600;">DXFファイルをローカル保存</a></div>`;
+                if (ticket.google_drive_file_url) {
+                    cardInner += `<div><a href="${ticket.google_drive_file_url}" target="_blank" style="color: var(--accent-green); font-weight:600; text-decoration:none;">☁️ Google Drive で開く ↗</a></div>`;
+                }
+                dxfCard.innerHTML = cardInner;
                 body.appendChild(dxfCard);
             }
 
@@ -463,6 +470,7 @@ $user = getAuthenticatedUser();
                     contentHtml += `
                         <div class="chat-attachment">
                             📄 添削PDF: <a href="${m.pdf_download_url}" target="_blank">添削PDFを開く</a>
+                            ${m.google_drive_file_url ? `<a href="${m.google_drive_file_url}" target="_blank" style="margin-left:12px; color: var(--accent-green);">☁️ Google Drive プレビュー ↗</a>` : ''}
                         </div>
                     `;
                 }
