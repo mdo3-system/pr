@@ -1,342 +1,370 @@
+<?php
+/**
+ * 木造壁量計算WEB「上善如水」公式サポート掲示板 & ナレッジポータル
+ * (index.php)
+ */
+require_once __DIR__ . '/api/auth_helper.php';
+$currentUser = getAuthenticatedUser();
+?>
 <!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>J-ALG WEB管理ダッシュボード | WEB構造計算 上善如水 Lead Generator</title>
+    <title>木造壁量計算WEB「上善如水」公式サポート掲示板 & ナレッジベース</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', 'Noto Sans JP', sans-serif; background-color: #0f172a; color: #f8fafc; }
-        .glass-panel { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
-        .opt-out-row { background-color: rgba(225, 29, 72, 0.15) !important; border-left: 4px solid #f43f5e; }
-        .tab-btn.active { border-bottom: 2px solid #38bdf8; color: #38bdf8; }
+        .glass-panel { background: rgba(30, 41, 59, 0.75); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
+        .badge-admin { background: rgba(225, 29, 72, 0.2); color: #f43f5e; border: 1px solid rgba(225, 29, 72, 0.4); }
+        .badge-accounting { background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.4); }
+        .badge-support { background: rgba(56, 189, 248, 0.2); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4); }
+        .badge-premium { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); }
+        .badge-general { background: rgba(148, 163, 184, 0.2); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.4); }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
 
-    <!-- Header -->
-    <header class="glass-panel sticky top-0 z-50 px-6 py-4 flex items-center justify-between shadow-lg">
+    <!-- Header Navigation -->
+    <header class="glass-panel sticky top-0 z-50 px-6 py-4 flex items-center justify-between shadow-xl">
         <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center font-bold text-xl shadow-lg">
-                J
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center font-bold text-xl text-white shadow-lg">
+                🌊
             </div>
             <div>
                 <h1 class="text-lg font-bold text-slate-100 flex items-center gap-2">
-                    J-ALG 管理ダッシュボード 
-                    <span class="text-xs bg-sky-500/20 text-sky-400 border border-sky-500/30 px-2 py-0.5 rounded-full font-mono">v1.0.3</span>
+                    上善如水 サポート掲示板
+                    <span class="text-xs bg-sky-500/20 text-sky-400 border border-sky-500/30 px-2 py-0.5 rounded-full font-mono">v1.0.7</span>
                 </h1>
-                <p class="text-xs text-slate-400">上善如水 アライアンス・リードジェネレーター (Jozen Alliance Lead Generator)</p>
+                <p class="text-xs text-slate-400">木造壁量計算WEBソフト「上善如水」 公式ナレッジ base & サポートフォーラム</p>
             </div>
         </div>
-        <div class="flex items-center space-x-4 text-xs font-mono text-slate-400">
-            <div><i class="fa-solid fa-server text-emerald-400"></i> XServer: eie.tokyo/pr</div>
-            <div><i class="fa-solid fa-shield-halved text-sky-400"></i> 特電法自動判定エンジン: ACTIVE</div>
+
+        <!-- Auth Status & Portal Buttons -->
+        <div class="flex items-center space-x-4">
+            <?php if ($currentUser): ?>
+                <div class="text-right text-xs">
+                    <div class="font-bold text-slate-200"><?= htmlspecialchars($currentUser['user_name'] ?? $currentUser['email']) ?></div>
+                    <div class="flex items-center gap-1.5 justify-end mt-0.5">
+                        <span class="px-2 py-0.5 rounded text-[10px] font-mono badge-<?= htmlspecialchars($currentUser['role']) ?>">
+                            <i class="fa-solid fa-user-shield"></i> <?= htmlspecialchars($currentUser['role_label']) ?>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Role-based Portal Direct Link -->
+                <a href="<?= htmlspecialchars($currentUser['portal_url']) ?>" class="bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white font-bold text-xs px-4 py-2 rounded-xl shadow-lg transition flex items-center gap-2">
+                    <i class="fa-solid fa-right-to-bracket"></i> <?= htmlspecialchars($currentUser['role_label']) ?> ポータルへ
+                </a>
+
+                <?php if ($currentUser['role'] === 'admin'): ?>
+                    <a href="/admin/support_manager.php" title="管理者総合マネージャー" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs px-3 py-2 rounded-xl border border-slate-700 transition">
+                        <i class="fa-solid fa-gear"></i> 管理者全画面
+                    </a>
+                <?php endif; ?>
+
+                <a href="/api/auth.php?action=logout&redirect=1" class="bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 text-xs px-3 py-2 rounded-xl border border-rose-500/30 transition">
+                    ログアウト
+                </a>
+            <?php else: ?>
+                <button onclick="openLoginModal()" class="bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-lg transition flex items-center gap-2">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> マジックリンクでログイン
+                </button>
+            <?php endif; ?>
         </div>
     </header>
 
     <!-- Main Container -->
-    <main class="flex-1 p-6 max-w-7xl w-full mx-auto space-y-6">
+    <main class="flex-1 p-6 max-w-7xl w-full mx-auto space-y-8">
 
-        <!-- Navigation Tabs -->
-        <nav class="flex border-b border-slate-800 space-x-8 text-sm font-medium">
-            <button onclick="switchTab('dashboard')" id="tab-dashboard" class="tab-btn pb-3 active flex items-center gap-2">
-                <i class="fa-solid fa-chart-pie"></i> KPI メーター
-            </button>
-            <button onclick="switchTab('companies')" id="tab-companies" class="tab-btn pb-3 flex items-center gap-2">
-                <i class="fa-solid fa-building-user"></i> リード精査・承認
-            </button>
-            <button onclick="switchTab('templates')" id="tab-templates" class="tab-btn pb-3 flex items-center gap-2">
-                <i class="fa-solid fa-envelope-open-text"></i> DMテンプレート管理
-            </button>
-            <button onclick="switchTab('logs')" id="tab-logs" class="tab-btn pb-3 flex items-center gap-2">
-                <i class="fa-solid fa-list-check"></i> 配信キュー＆ログ
-            </button>
-        </nav>
+        <!-- Search & Hero Banner -->
+        <section class="glass-panel rounded-3xl p-8 text-center space-y-6 relative overflow-hidden">
+            <div class="absolute -top-24 -right-24 w-72 h-72 bg-sky-500/10 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute -bottom-24 -left-24 w-72 h-72 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
-        <!-- [TAB 1] Dashboard KPI Section -->
-        <section id="sec-dashboard" class="space-y-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div class="glass-panel p-5 rounded-2xl">
-                    <div class="flex justify-between items-start text-slate-400 text-xs mb-2">
-                        <span>全収集ターゲット企業数</span>
-                        <i class="fa-solid fa-database text-sky-400 text-base"></i>
-                    </div>
-                    <div class="text-3xl font-bold text-slate-100 font-mono" id="kpi-total">0</div>
-                    <div class="text-xs text-slate-500 mt-2">国税庁API & 建築士名簿</div>
-                </div>
-                <div class="glass-panel p-5 rounded-2xl">
-                    <div class="flex justify-between items-start text-slate-400 text-xs mb-2">
-                        <span>有効メールアドレス取得数</span>
-                        <i class="fa-solid fa-at text-emerald-400 text-base"></i>
-                    </div>
-                    <div class="text-3xl font-bold text-emerald-400 font-mono" id="kpi-emails">0</div>
-                    <div class="text-xs text-slate-500 mt-2">Serper & Scraper 抽出</div>
-                </div>
-                <div class="glass-panel p-5 rounded-2xl border-rose-500/30">
-                    <div class="flex justify-between items-start text-slate-400 text-xs mb-2">
-                        <span>特電法・自動除外件数</span>
-                        <i class="fa-solid fa-ban text-rose-400 text-base"></i>
-                    </div>
-                    <div class="text-3xl font-bold text-rose-400 font-mono" id="kpi-optout">0</div>
-                    <div class="text-xs text-rose-400/70 mt-2"><i class="fa-solid fa-gavel"></i> 営業お断りワード自動検知</div>
-                </div>
-                <div class="glass-panel p-5 rounded-2xl">
-                    <div class="flex justify-between items-start text-slate-400 text-xs mb-2">
-                        <span>承認済 (Approved) リスト</span>
-                        <i class="fa-solid fa-circle-check text-sky-400 text-base"></i>
-                    </div>
-                    <div class="text-3xl font-bold text-sky-400 font-mono" id="kpi-approved">0</div>
-                    <div class="text-xs text-slate-500 mt-2">配信キュー準備完了</div>
-                </div>
+            <div class="inline-block bg-sky-500/15 border border-sky-500/30 text-sky-400 text-xs px-3 py-1 rounded-full font-semibold mb-2">
+                <i class="fa-solid fa-book-bookmark"></i> 実務計算・構造適正化の知見を完全公開
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="glass-panel p-5 rounded-2xl">
-                    <div class="text-xs text-slate-400 mb-1">送信待ちキュー</div>
-                    <div class="text-2xl font-bold text-amber-400 font-mono" id="kpi-queued">0</div>
+            <h2 class="text-2xl md:text-3xl font-extrabold text-slate-100">
+                壁量計算・斜め壁・基礎計算の解決策を検索
+            </h2>
+            <p class="text-sm text-slate-400 max-w-2xl mx-auto">
+                上善如水プレミアムサポートで解決した実務ケースやDXF下地連動、金物配置のQAを匿名化ナレッジとして公開中。
+            </p>
+
+            <!-- Search Form -->
+            <div class="max-w-2xl mx-auto flex gap-3">
+                <div class="relative flex-1">
+                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-slate-500 text-sm"></i>
+                    <input type="text" id="forum-kw" placeholder="例: 斜め壁, 金物, N値計算, 基礎..." class="w-full bg-slate-900/90 border border-slate-700/80 rounded-2xl pl-11 pr-4 py-3 text-sm text-slate-200 focus:outline-none focus:border-sky-500">
                 </div>
-                <div class="glass-panel p-5 rounded-2xl">
-                    <div class="text-xs text-slate-400 mb-1">送信完了 / 到達数</div>
-                    <div class="text-2xl font-bold text-emerald-400 font-mono" id="kpi-delivered">0</div>
-                </div>
-                <div class="glass-panel p-5 rounded-2xl">
-                    <div class="text-xs text-slate-400 mb-1">バウンス / スパム報告</div>
-                    <div class="text-2xl font-bold text-rose-400 font-mono" id="kpi-bounced">0</div>
-                </div>
+                <button onclick="searchKnowledge()" class="bg-sky-600 hover:bg-sky-500 text-white font-bold px-6 py-3 rounded-2xl shadow-lg transition text-sm flex items-center gap-2">
+                    検索
+                </button>
+            </div>
+
+            <!-- Quick Category Tags -->
+            <div class="flex flex-wrap justify-center gap-2 text-xs">
+                <button onclick="filterCategory('')" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 px-3 py-1 rounded-lg">すべて</button>
+                <button onclick="filterCategory('斜め壁計算')" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sky-400 px-3 py-1 rounded-lg"># 斜め壁計算</button>
+                <button onclick="filterCategory('基礎計算')" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-emerald-400 px-3 py-1 rounded-lg"># 基礎計算</button>
+                <button onclick="filterCategory('DXF下地')" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-indigo-400 px-3 py-1 rounded-lg"># DXF下地</button>
+                <button onclick="filterCategory('その他')" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-amber-400 px-3 py-1 rounded-lg"># その他</button>
             </div>
         </section>
 
-        <!-- [TAB 2] Lead Review & Approval Section -->
-        <section id="sec-companies" class="space-y-4 hidden">
-            <!-- Filter Bar -->
-            <div class="glass-panel p-4 rounded-xl flex flex-wrap gap-4 items-center justify-between">
-                <div class="flex flex-wrap gap-3 items-center text-xs">
-                    <select id="flt-pref" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-slate-200">
-                        <option value="">すべての都道府県</option>
-                        <option value="埼玉県">埼玉県</option>
-                        <option value="東京都">東京都</option>
-                    </select>
-                    <select id="flt-status" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-slate-200">
-                        <option value="">すべてのステータス</option>
-                        <option value="pending">未調査 (pending)</option>
-                        <option value="crawled">調査済 (crawled)</option>
-                        <option value="approved">承認済 (approved)</option>
-                        <option value="rejected">却下 (rejected)</option>
-                    </select>
-                    <button onclick="loadCompanies()" class="bg-sky-600 hover:bg-sky-500 text-white px-4 py-2 rounded-lg font-medium shadow-md transition">
-                        <i class="fa-solid fa-filter"></i> 絞り込み
+        <!-- Premium Support Teaser Banner -->
+        <section class="glass-panel rounded-2xl p-6 flex flex-col md:flex-row justify-between items-center gap-4 border-sky-500/20">
+            <div class="space-y-1">
+                <div class="flex items-center gap-2">
+                    <span class="bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs px-2.5 py-0.5 rounded-md font-bold">1対1 完全個室サポート</span>
+                    <h3 class="font-bold text-slate-100">プレミアムサポート会員様 専用ポータル</h3>
+                </div>
+                <p class="text-xs text-slate-400">図面データ(.dxf)や計算パラメーターの直接検証、YouTube動画添削、Zoom対面相談を受け付けています。</p>
+            </div>
+            <div>
+                <?php if ($currentUser && $currentUser['is_premium']): ?>
+                    <a href="/my/support_dashboard.php" class="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 font-extrabold text-xs px-5 py-2.5 rounded-xl shadow-lg transition flex items-center gap-2">
+                        <i class="fa-solid fa-comments"></i> 質問カードの作成・履歴はこちら
+                    </a>
+                <?php else: ?>
+                    <button onclick="openLoginModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs px-5 py-2.5 rounded-xl border border-slate-700 transition flex items-center gap-2">
+                        <i class="fa-solid fa-lock"></i> ログインして質疑カードを作成
                     </button>
-                </div>
-                <div>
-                    <button onclick="bulkApprove()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg text-xs font-semibold shadow-md transition">
-                        <i class="fa-solid fa-check-double"></i> 有効メール保持企業を一括承認 (Approve All Valid)
-                    </button>
-                </div>
-            </div>
-
-            <!-- Table -->
-            <div class="glass-panel rounded-2xl overflow-hidden shadow-xl">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-xs text-slate-300">
-                        <thead class="bg-slate-900/80 text-slate-400 uppercase font-mono">
-                            <tr>
-                                <th class="p-3">ID</th>
-                                <th class="p-3">法人名 / 市区町村</th>
-                                <th class="p-3">メールアドレス</th>
-                                <th class="p-3">FAX / URL</th>
-                                <th class="p-3">特電法チェック</th>
-                                <th class="p-3">ステータス</th>
-                                <th class="p-3 text-right">アクション</th>
-                            </tr>
-                        </thead>
-                        <tbody id="company-table-body" class="divide-y divide-slate-800">
-                            <!-- Rows loaded by JS -->
-                        </tbody>
-                    </table>
-                </div>
+                <?php endif; ?>
             </div>
         </section>
 
-        <!-- [TAB 3] Template Management Section -->
-        <section id="sec-templates" class="space-y-4 hidden">
-            <div class="glass-panel p-6 rounded-2xl space-y-4">
-                <h3 class="text-sm font-bold text-slate-200 border-b border-slate-700 pb-2">営業DMテンプレート作成・編集</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="space-y-3 text-xs">
-                        <div>
-                            <label class="block mb-1 text-slate-400">管理名称</label>
-                            <input type="text" id="tpl-name" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-200" placeholder="例: 木造工務店向けスポット訴求Ver1">
-                        </div>
-                        <div>
-                            <label class="block mb-1 text-slate-400">件名 (置換タグ {{company_name}}, {{city}} 対応)</label>
-                            <input type="text" id="tpl-subject" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-200" placeholder="【Mac対応/斜め壁計算】WEB構造計算ツールのご案内">
-                        </div>
-                        <div>
-                            <label class="block mb-1 text-slate-400">本文 (プレーンテキスト)</label>
-                            <textarea id="tpl-body" rows="8" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-200 font-mono" placeholder="{{company_name}} 様&#10;&#10;お世話になっております。{{city}}にて建築設計・施工を手掛けられている皆様へ..."></textarea>
-                        </div>
-                        <button onclick="saveTemplate()" class="bg-sky-600 hover:bg-sky-500 text-white px-5 py-2 rounded-lg font-medium transition">
-                            <i class="fa-solid fa-floppy-disk"></i> テンプレート保存
-                        </button>
-                    </div>
-                    <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
-                        <div class="text-xs font-mono text-slate-500 border-b border-slate-800 pb-1">リアルタイムプレビュー (置換後表示)</div>
-                        <div class="text-xs font-bold text-sky-400" id="prev-subject">件名プレビュー</div>
-                        <div class="text-xs text-slate-300 whitespace-pre-wrap font-mono" id="prev-body">本文プレビュー</div>
-                    </div>
-                </div>
-            </div>
-        </section>
+        <!-- Knowledge Cards Grid -->
+        <section class="space-y-4">
+            <h3 class="text-base font-bold text-slate-200 flex items-center gap-2">
+                <i class="fa-solid fa-lightbulb text-amber-400"></i> 公開ナレッジ・FAQ一覧
+            </h3>
 
-        <!-- [TAB 4] Send Logs Section -->
-        <section id="sec-logs" class="space-y-4 hidden">
-            <div class="glass-panel p-4 rounded-2xl overflow-x-auto">
-                <table class="w-full text-left text-xs text-slate-300">
-                    <thead class="bg-slate-900 text-slate-400 font-mono">
-                        <tr>
-                            <th class="p-3">送信ID</th>
-                            <th class="p-3">宛先企業</th>
-                            <th class="p-3">メールアドレス</th>
-                            <th class="p-3">ステータス</th>
-                            <th class="p-3">送信予定 / 実日時</th>
-                        </tr>
-                    </thead>
-                    <tbody id="logs-table-body" class="divide-y divide-slate-800">
-                        <!-- Loaded by JS -->
-                    </tbody>
-                </table>
+            <div id="knowledge-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                <!-- Loaded dynamically by JS -->
             </div>
         </section>
 
     </main>
 
+    <!-- Modal: Knowledge Detail -->
+    <div id="modal-knowledge" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md hidden p-4">
+        <div class="glass-panel w-full max-w-3xl rounded-3xl p-6 max-h-[85vh] overflow-y-auto relative space-y-4 border-slate-700">
+            <button onclick="closeKnowledgeModal()" class="absolute top-5 right-5 text-slate-400 hover:text-white text-lg">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div id="modal-k-category" class="inline-block bg-sky-500/20 text-sky-400 text-xs px-3 py-1 rounded-full font-bold">カテゴリー</div>
+            <h3 id="modal-k-title" class="text-xl font-bold text-slate-100">タイトル</h3>
+            <div class="text-xs text-slate-500 font-mono" id="modal-k-date">2026-07-31</div>
+            <hr class="border-slate-800">
+            <div id="modal-k-body" class="text-sm text-slate-300 space-y-3 leading-relaxed whitespace-pre-wrap font-mono bg-slate-950/50 p-4 rounded-2xl border border-slate-800">
+                本文
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Magic Link Login -->
+    <div id="modal-login" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md hidden p-4">
+        <div class="glass-panel w-full max-w-md rounded-3xl p-6 relative space-y-5 border-sky-500/30 shadow-2xl">
+            <button onclick="closeLoginModal()" class="absolute top-5 right-5 text-slate-400 hover:text-white text-lg">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div class="text-center space-y-2">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center font-bold text-2xl text-white mx-auto shadow-lg">
+                    ✨
+                </div>
+                <h3 class="text-lg font-bold text-slate-100">マジックリンクでログイン</h3>
+                <p class="text-xs text-slate-400">登録メールアドレスを入力すると、ワンクリックでログインできる魔法のリンクを発行・送信します。</p>
+            </div>
+
+            <!-- Login Form -->
+            <form id="form-magic-link" onsubmit="handleSendMagicLink(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">メールアドレス</label>
+                    <input type="email" id="login-email" required placeholder="koki@t-smile.co.jp" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-slate-200 focus:outline-none focus:border-sky-500 font-mono">
+                </div>
+
+                <button type="submit" id="btn-submit-magic" class="w-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold py-3 rounded-xl shadow-lg transition text-sm flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-paper-plane"></i> マジックリンクを送信
+                </button>
+            </form>
+
+            <!-- Result Box -->
+            <div id="login-result-box" class="hidden p-4 rounded-2xl bg-slate-900 border border-emerald-500/40 space-y-3">
+                <div class="text-xs text-emerald-400 font-bold flex items-center gap-1.5">
+                    <i class="fa-solid fa-circle-check"></i> <span id="login-result-msg">送信しました</span>
+                </div>
+                <div class="text-[11px] text-slate-300">
+                    権限: <strong id="login-result-role" class="text-sky-400"></strong>
+                </div>
+                <div class="space-y-1">
+                    <div class="text-[10px] text-slate-400">【開発・動作テスト用】発行されたマジックリンク:</div>
+                    <a id="login-result-link" href="#" class="block bg-sky-600 hover:bg-sky-500 text-white font-bold text-center text-xs py-2 px-3 rounded-xl shadow transition text-ellipsis overflow-hidden">
+                        🚀 このマジックリンクで直ちにログイン
+                    </a>
+                </div>
+            </div>
+
+            <hr class="border-slate-800">
+
+            <!-- Quick Select Preset Accounts -->
+            <div class="space-y-2">
+                <div class="text-[11px] text-slate-400 font-semibold text-center">クイックアカウント選択 (開発・デモ用)</div>
+                <div class="grid grid-cols-2 gap-2 text-xs">
+                    <button type="button" onclick="quickSelectAccount('koki@t-smile.co.jp')" class="bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-rose-300 p-2 rounded-xl text-left transition">
+                        <div class="font-bold">👑 管理者</div>
+                        <div class="text-[10px] font-mono text-rose-400/80">koki@t-smile...</div>
+                    </button>
+                    <button type="button" onclick="quickSelectAccount('keiri@t-smile.co.jp')" class="bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 p-2 rounded-xl text-left transition">
+                        <div class="font-bold">💼 会計担当</div>
+                        <div class="text-[10px] font-mono text-emerald-400/80">keiri@t-smile...</div>
+                    </button>
+                    <button type="button" onclick="quickSelectAccount('sato@t-smile.co.jp')" class="bg-sky-500/15 hover:bg-sky-500/25 border border-sky-500/30 text-sky-300 p-2 rounded-xl text-left transition">
+                        <div class="font-bold">🛠 動作サポート(佐藤)</div>
+                        <div class="text-[10px] font-mono text-sky-400/80">sato@t-smile...</div>
+                    </button>
+                    <button type="button" onclick="quickSelectAccount('sales@t-smile.co.jp')" class="bg-sky-500/15 hover:bg-sky-500/25 border border-sky-500/30 text-sky-300 p-2 rounded-xl text-left transition">
+                        <div class="font-bold">🛠 動作サポート(営業)</div>
+                        <div class="text-[10px] font-mono text-sky-400/80">sales@t-smile...</div>
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="glass-panel border-t border-slate-800 p-6 text-center text-xs text-slate-500">
+        © 2026 木造壁量計算WEB「上善如水」 Official Knowledge & Support Portal. All rights reserved.
+    </footer>
+
     <!-- JS Logic -->
     <script src="Version.js"></script>
     <script>
-        function switchTab(tabName) {
-            ['dashboard', 'companies', 'templates', 'logs'].forEach(t => {
-                document.getElementById('sec-' + t).classList.add('hidden');
-                document.getElementById('tab-' + t).classList.remove('active');
-            });
-            document.getElementById('sec-' + tabName).classList.remove('hidden');
-            document.getElementById('tab-' + tabName).classList.add('active');
+        let currentCategory = '';
 
-            if (tabName === 'dashboard') loadKpi();
-            if (tabName === 'companies') loadCompanies();
-            if (tabName === 'logs') loadLogs();
-        }
-
-        async function loadKpi() {
+        async function loadKnowledge(kw = '', cat = '') {
             try {
-                const res = await fetch('api/logs.php?type=kpi');
+                let url = '/api/community/list_knowledge.php';
+                const params = new URLSearchParams();
+                if (kw) params.append('keyword', kw);
+                if (cat) params.append('category', cat);
+                if (params.toString()) url += '?' + params.toString();
+
+                const res = await fetch(url);
                 const data = await res.json();
-                if (data.status === 'success') {
-                    const k = data.kpi;
-                    document.getElementById('kpi-total').innerText = k.total_companies.toLocaleString();
-                    document.getElementById('kpi-emails').innerText = k.valid_emails.toLocaleString();
-                    document.getElementById('kpi-optout').innerText = k.opt_out_count.toLocaleString();
-                    document.getElementById('kpi-approved').innerText = k.approved_count.toLocaleString();
-                    document.getElementById('kpi-queued').innerText = k.queued_mails.toLocaleString();
-                    document.getElementById('kpi-delivered').innerText = k.delivered_mails.toLocaleString();
-                    document.getElementById('kpi-bounced').innerText = k.bounced_mails.toLocaleString();
+
+                const grid = document.getElementById('knowledge-grid');
+                grid.innerHTML = '';
+
+                if (data.status === 'success' && data.posts.length > 0) {
+                    data.posts.forEach(p => {
+                        const card = document.createElement('div');
+                        card.className = 'glass-panel rounded-2xl p-5 border border-slate-800 hover:border-sky-500/50 transition cursor-pointer space-y-3';
+                        card.onclick = () => openKnowledgeDetail(p);
+
+                        card.innerHTML = `
+                            <div class="flex justify-between items-center">
+                                <span class="bg-sky-500/15 text-sky-400 border border-sky-500/30 text-[10px] font-semibold px-2.5 py-0.5 rounded-full">${escapeHtml(p.category)}</span>
+                                <span class="text-[10px] text-slate-500 font-mono">👁 ${p.views_count || 0}</span>
+                            </div>
+                            <h4 class="font-bold text-slate-100 text-sm line-clamp-2">${escapeHtml(p.title)}</h4>
+                            <p class="text-xs text-slate-400 line-clamp-3 font-mono leading-relaxed">${escapeHtml(p.content_md.replace(/#|\*|`/g, ''))}</p>
+                            <div class="flex justify-between items-center text-[10px] text-slate-500 pt-2 border-t border-slate-800/80 font-mono">
+                                <span>📅 ${p.created_at.substr(0,10)}</span>
+                                <span class="text-sky-400 font-semibold">詳細を見る ➔</span>
+                            </div>
+                        `;
+                        grid.appendChild(card);
+                    });
+                } else {
+                    grid.innerHTML = '<div class="col-span-full text-center text-slate-500 py-12 text-sm">該当するナレッジ記事が見つかりませんでした。</div>';
                 }
-            } catch (e) { console.error(e); }
+            } catch(e) { console.error(e); }
         }
 
-        async function loadCompanies() {
-            const pref = document.getElementById('flt-pref').value;
-            const status = document.getElementById('flt-status').value;
-            const res = await fetch(`api/companies.php?prefecture=${encodeURIComponent(pref)}&status=${status}`);
-            const data = await res.json();
-            const tbody = document.getElementById('company-table-body');
-            tbody.innerHTML = '';
+        function searchKnowledge() {
+            const kw = document.getElementById('forum-kw').value.trim();
+            loadKnowledge(kw, currentCategory);
+        }
 
-            if (data.status === 'success') {
-                data.data.forEach(c => {
-                    const isOpt = c.is_opt_out == 1;
-                    const tr = document.createElement('tr');
-                    if (isOpt) tr.className = 'opt-out-row';
+        function filterCategory(cat) {
+            currentCategory = cat;
+            loadKnowledge(document.getElementById('forum-kw').value.trim(), cat);
+        }
 
-                    tr.innerHTML = `
-                        <td class="p-3 font-mono text-slate-500">${c.id}</td>
-                        <td class="p-3">
-                            <div class="font-bold text-slate-200">${c.name}</div>
-                            <div class="text-slate-400 text-[10px]">${c.prefecture} ${c.city}</div>
-                        </td>
-                        <td class="p-3 font-mono text-sky-400">${c.email || '<span class="text-slate-600">未取得</span>'}</td>
-                        <td class="p-3">
-                            <div>${c.fax || '-'}</div>
-                            ${c.official_url ? `<a href="${c.official_url}" target="_blank" class="text-[10px] text-indigo-400 underline">公式サイト</a>` : ''}
-                        </td>
-                        <td class="p-3">
-                            ${isOpt ? `<span class="bg-rose-500/20 text-rose-400 border border-rose-500/40 px-2 py-0.5 rounded text-[10px]"><i class="fa-solid fa-triangle-exclamation"></i> 営業お断り</span>` : `<span class="text-emerald-400 text-[10px]"><i class="fa-solid fa-shield"></i> OK</span>`}
-                        </td>
-                        <td class="p-3 font-mono text-[10px]">${c.status}</td>
-                        <td class="p-3 text-right space-x-1">
-                            <button onclick="updateCompanyStatus(${c.id}, 'approved')" class="bg-sky-600 hover:bg-sky-500 text-white px-2 py-1 rounded text-[10px]">Approve</button>
-                            <button onclick="updateCompanyStatus(${c.id}, 'rejected')" class="bg-slate-700 hover:bg-slate-600 text-slate-300 px-2 py-1 rounded text-[10px]">Reject</button>
-                        </td>
-                    `;
-                    tbody.appendChild(tr);
+        function openKnowledgeDetail(post) {
+            document.getElementById('modal-k-category').innerText = post.category;
+            document.getElementById('modal-k-title').innerText = post.title;
+            document.getElementById('modal-k-date').innerText = '公開日時: ' + post.created_at;
+            document.getElementById('modal-k-body').innerText = post.content_md;
+            document.getElementById('modal-knowledge').classList.remove('hidden');
+        }
+
+        function closeKnowledgeModal() {
+            document.getElementById('modal-knowledge').classList.add('hidden');
+        }
+
+        function openLoginModal() {
+            document.getElementById('modal-login').classList.remove('hidden');
+        }
+
+        function closeLoginModal() {
+            document.getElementById('modal-login').classList.add('hidden');
+        }
+
+        function quickSelectAccount(email) {
+            document.getElementById('login-email').value = email;
+            document.getElementById('form-magic-link').requestSubmit();
+        }
+
+        async function handleSendMagicLink(e) {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value.trim();
+            const btn = document.getElementById('btn-submit-magic');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 送信中...';
+
+            try {
+                const formData = new FormData();
+                formData.append('action', 'request_magic_link');
+                formData.append('email', email);
+
+                const res = await fetch('/api/auth.php', {
+                    method: 'POST',
+                    body: formData
                 });
+                const data = await res.json();
+
+                if (data.status === 'success') {
+                    document.getElementById('login-result-msg').innerText = data.message;
+                    document.getElementById('login-result-role').innerText = data.role_label + ' (' + data.role + ')';
+                    document.getElementById('login-result-link').href = data.magic_link;
+                    document.getElementById('login-result-box').classList.remove('hidden');
+                } else {
+                    alert(data.message || 'エラーが発生しました。');
+                }
+            } catch(err) {
+                console.error(err);
+                alert('通信エラーが発生しました。');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> マジックリンクを送信';
             }
         }
 
-        async function updateCompanyStatus(id, newStatus) {
-            await fetch('api/companies.php', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ action: 'update_status', company_id: id, status: newStatus })
-            });
-            loadCompanies();
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
         }
 
-        async function bulkApprove() {
-            if (!confirm('有効なメールアドレスを持つ未オプトアウト企業を一括承認しますか？')) return;
-            const res = await fetch('api/companies.php', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ action: 'bulk_approve' })
-            });
-            const data = await res.json();
-            alert(`一括承認を完了しました (${data.approved_count} 件)`);
-            loadCompanies();
-        }
-
-        async function loadLogs() {
-            const res = await fetch('api/logs.php?type=logs');
-            const data = await res.json();
-            const tbody = document.getElementById('logs-table-body');
-            tbody.innerHTML = '';
-            if (data.status === 'success') {
-                data.data.forEach(l => {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td class="p-3 font-mono">${l.id}</td>
-                        <td class="p-3">${l.company_name}</td>
-                        <td class="p-3 font-mono text-sky-400">${l.email_to}</td>
-                        <td class="p-3 font-mono text-xs">${l.status}</td>
-                        <td class="p-3 text-[10px] text-slate-400">${l.scheduled_at}</td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-            }
-        }
-
-        // Live Preview Binding
-        document.getElementById('tpl-subject').addEventListener('input', updatePrev);
-        document.getElementById('tpl-body').addEventListener('input', updatePrev);
-        function updatePrev() {
-            const subj = document.getElementById('tpl-subject').value;
-            const body = document.getElementById('tpl-body').value;
-            document.getElementById('prev-subject').innerText = subj.replace('{{company_name}}', '株式会社 川越設計工房').replace('{{city}}', '川越市');
-            document.getElementById('prev-body').innerText = body.replace('{{company_name}}', '株式会社 川越設計工房').replace('{{city}}', '川越市');
-        }
-
-        // Init
-        loadKpi();
+        // Init Load
+        loadKnowledge();
     </script>
 </body>
 </html>

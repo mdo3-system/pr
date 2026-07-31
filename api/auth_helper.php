@@ -40,16 +40,54 @@ function getPdoConnection() {
 }
 
 /**
- * ログインユーザー情報とプレミアム権限を取得
+ * 各ロールに応じたポータルURLを取得
+ */
+function getPortalUrlByRole($role) {
+    switch ($role) {
+        case 'admin':
+            return '/admin/support_manager.php';
+        case 'accounting':
+            return '/admin/accounting_portal.php';
+        case 'support':
+            return '/admin/support_portal.php';
+        case 'premium':
+        case 'general':
+        case 'internal_staff':
+        default:
+            return '/my/support_dashboard.php';
+    }
+}
+
+/**
+ * ロール表示名（日本語）
+ */
+function getRoleLabelJp($role) {
+    switch ($role) {
+        case 'admin':
+            return '管理者';
+        case 'accounting':
+            return '会計担当';
+        case 'support':
+            return '動作サポート担当';
+        case 'premium':
+            return 'プレミアムサポート会員';
+        case 'internal_staff':
+            return '社内スタッフ';
+        case 'general':
+        default:
+            return '一般ユーザー';
+    }
+}
+
+/**
+ * ログインユーザー情報とプレミアム・ロール権限を取得
  */
 function getAuthenticatedUser() {
     $pdo = getPdoConnection();
     
-    // セッションまたは開発用クエリ/ヘッダーからのユーザー識別
     $userId = $_SESSION['user_id'] ?? $_GET['user_id'] ?? $_POST['user_id'] ?? null;
     
     if (!$userId) {
-        // 未ログインの場合、ゲストまたはデモ用ユーザー1（存在しなければnull）
         return null;
     }
 
@@ -63,19 +101,20 @@ function getAuthenticatedUser() {
     $user = $stmt->fetch();
 
     if ($user) {
-        // プレミアム判定: admin, internal_staff, または activeサブスクリプション
-        $isStaff = in_array($user['role'], ['admin', 'internal_staff'], true);
+        $isStaff = in_array($user['role'], ['admin', 'accounting', 'support', 'internal_staff'], true);
         $isSubActive = in_array($user['sub_status'], ['active'], true) || in_array($user['plan_type'], ['free_permanent'], true);
         
         $user['is_staff'] = $isStaff;
-        $user['is_premium'] = $isStaff || $isSubActive;
+        $user['is_premium'] = $isStaff || $isSubActive || $user['role'] === 'premium';
+        $user['portal_url'] = getPortalUrlByRole($user['role']);
+        $user['role_label'] = getRoleLabelJp($user['role']);
     }
 
     return $user;
 }
 
 /**
- * プレミアムユーザーまたはスタッフであるかを検証（違反時JSONエラー出力）
+ * プレミアムユーザーまたは各種スタッフであるかを検証（違反時JSONエラー出力）
  */
 function requirePremiumUser() {
     $user = getAuthenticatedUser();
