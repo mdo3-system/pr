@@ -2,6 +2,7 @@
 /**
  * J-ALG (上善如水 アライアンス・リードジェネレーター)
  * [Cron 01:00 実行] 企業インポート自動バッチスクリプト
+ * 国税庁 法人番号システム Web-API 連携＆地域進捗管理連動版
  */
 
 require_once __DIR__ . '/../src/NtaApiImporter.php';
@@ -33,21 +34,37 @@ function getPdoConnection() {
     ]);
 }
 
-echo "[" . date('Y-m-d H:i:s') . "] Starting Cron: Company Import Batch...\n";
+echo "[" . date('Y-m-d H:i:s') . "] Starting Cron: Company Import Batch (NTA Web-API)...\n";
 
 try {
     $pdo = getPdoConnection();
-    $importer = new NtaApiImporter($pdo);
 
-    // デモ・ターゲットバルクインポート（埼玉県・東京都）
-    $sampleCompanies = [
-        ['corporate_number' => '1100001000001', 'name' => '株式会社 川越建築設計工房', 'prefecture' => '埼玉県', 'city' => '川越市', 'address' => '脇田本町10-1', 'postal_code' => '350-0000', 'category' => 'architect_office'],
-        ['corporate_number' => '1100001000002', 'name' => '有限会社 大宮木造工務店', 'prefecture' => '埼玉県', 'city' => 'さいたま市', 'address' => '大宮区桜木町1-1', 'postal_code' => '330-0000', 'category' => 'builder'],
-        ['corporate_number' => '1300001000003', 'name' => '合同会社 立川構造設計事務所', 'prefecture' => '東京都', 'city' => '立川市', 'address' => '曙町2-1-1', 'postal_code' => '190-0000', 'category' => 'architect_office']
-    ];
+    // .env から NTA_API_ID を取得
+    $envFile = __DIR__ . '/../.env';
+    $ntaApiId = null;
+    if (file_exists($envFile)) {
+        $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        foreach ($lines as $line) {
+            if (strpos(trim($line), 'NTA_API_ID=') === 0) {
+                $ntaApiId = trim(substr(trim($line), strlen('NTA_API_ID=')));
+                break;
+            }
+        }
+    }
 
-    $count = $importer->importCompanies($sampleCompanies);
-    echo "[" . date('Y-m-d H:i:s') . "] Successfully imported {$count} companies.\n";
+    $importer = new NtaApiImporter($pdo, $ntaApiId);
+
+    // 地域進捗テーブル (nta_extract_progress) に基づき、次に巡回すべき地域を1件実行
+    $res = $importer->executeScheduledExtraction();
+
+    if ($res['success']) {
+        echo "[" . date('Y-m-d H:i:s') . "] Extraction Success: " . ($res['region'] ?? '') . "\n";
+        echo "  - Page: " . ($res['page'] ?? 1) . "\n";
+        echo "  - Imported/Updated: " . ($res['imported'] ?? 0) . " records (Total hits: " . ($res['total_records'] ?? 0) . ")\n";
+        echo "  - Status: " . ($res['status'] ?? '') . "\n";
+    } else {
+        echo "[" . date('Y-m-d H:i:s') . "] Message: " . ($res['message'] ?? 'No action') . "\n";
+    }
 
 } catch (Exception $e) {
     echo "[" . date('Y-m-d H:i:s') . "] [ERROR] Import batch failed: " . $e->getMessage() . "\n";

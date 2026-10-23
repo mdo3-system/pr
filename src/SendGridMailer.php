@@ -6,8 +6,8 @@
 
 class SendGridMailer {
     private $apiKey;
-    private $fromEmail = "info@jozen-info.com";
-    private $fromName  = "WEB構造計算 上善如水 - 壁量・N値・基礎計算ツール";
+    private $fromEmail = "pr@eie.tokyo";
+    private $fromName  = "木造壁量計算WEB 上善如水";
 
     public function __construct(?string $apiKey = null) {
         $this->apiKey = $apiKey;
