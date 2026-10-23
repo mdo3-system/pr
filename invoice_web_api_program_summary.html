@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>プログラム概要書（国税庁 適格請求書発行事業者公表システム Web-API利用申請用）</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 15mm 15mm;
+        }
+        body {
+            font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #1a1a1a;
+            background-color: #f8fafc;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 40px 50px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border-radius: 6px;
+        }
+        @media print {
+            body {
+                background-color: #ffffff;
+                padding: 0;
+            }
+            .container {
+                box-shadow: none;
+                padding: 0;
+                max-width: 100%;
+            }
+            .no-print {
+                display: none;
+            }
+        }
+        .header {
+            border-bottom: 2px solid #2563eb;
+            padding-bottom: 12px;
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+        h1 {
+            font-size: 20px;
+            color: #1e3a8a;
+            margin: 0;
+            font-weight: 700;
+        }
+        .date {
+            font-size: 13px;
+            color: #64748b;
+        }
+        h2 {
+            font-size: 15px;
+            color: #1e40af;
+            border-left: 4px solid #2563eb;
+            padding-left: 10px;
+            margin-top: 24px;
+            margin-bottom: 10px;
+            background-color: #f1f5f9;
+            padding-top: 4px;
+            padding-bottom: 4px;
+        }
+        p, li {
+            font-size: 13px;
+            color: #334155;
+        }
+        ul {
+            margin: 6px 0;
+            padding-left: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0 16px;
+            font-size: 13px;
+        }
+        th, td {
+            border: 1px solid #cbd5e1;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f8fafc;
+            color: #1e293b;
+            font-weight: 600;
+            width: 25%;
+        }
+        .diagram-box {
+            background-color: #f8fafc;
+            border: 1px dashed #94a3b8;
+            border-radius: 4px;
+            padding: 14px;
+            margin: 12px 0;
+            font-family: Consolas, monospace;
+            font-size: 12px;
+            line-height: 1.5;
+            color: #0f172a;
+        }
+        .print-btn {
+            background-color: #2563eb;
+            color: #ffffff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .print-btn:hover {
+            background-color: #1d4ed8;
+        }
+    </style>
+</head>
+<body>
+
+<div class="no-print" style="max-width: 800px; margin: 0 auto 10px; text-align: right;">
+    <button class="print-btn" onclick="window.print()">🖨️ PDFとして保存 / 印刷する</button>
+</div>
+
+<div class="container">
+    <div class="header">
+        <div>
+            <h1>公表情報を利用する電子計算機及びプログラムの概要書</h1>
+            <div style="font-size: 12px; color: #64748b; margin-top: 4px;">国税庁「適格請求書発行事業者公表システム Web-API」利用申請 添付資料</div>
+        </div>
+        <div class="date">作成日: 2026年10月6日</div>
+    </div>
+
+    <h2>1. 申請者及びシステムの概要</h2>
+    <table>
+        <tr>
+            <th>事業者名</th>
+            <td>株式会社T-Smile（事業内容: 建設業・建築関連業務支援）</td>
+        </tr>
+        <tr>
+            <th>所在地</th>
+            <td>埼玉県鶴ヶ島市大字町屋176番地5</td>
+        </tr>
+        <tr>
+            <th>システム名称</th>
+            <td>建築関連業務支援・販売管理システム（上善如水・J-ALGプラットフォーム）</td>
+        </tr>
+        <tr>
+            <th>管理責任者</th>
+            <td>菅原</td>
+        </tr>
+    </table>
+
+    <h2>2. プログラムの利用目的・背景</h2>
+    <p>
+        本システムは、建築士事務所や工務店等の取引先・会員企業向けに業務支援及び管理を行うWebプラットフォームです。<br>
+        インボイス制度（適格請求書等保存方式）に準拠した適正な取引・請求業務を推進するため、登録された取引先企業や新規登録企業の適格請求書発行事業者番号（登録番号）および公表情報の有効性を国税庁Web-APIを通じて自動照会・検証し、請求書発行・受取業務における税務コンプライアンスの担保および事務処理の効率化を図ることを目的とします。
+    </p>
+
+    <h2>3. システム構成及び電子計算機環境</h2>
+    <table>
+        <tr>
+            <th>サーバー環境</th>
+            <td>クラウドWebサーバー（Linux / Apache・PHP 8.x）</td>
+        </tr>
+        <tr>
+            <th>データベース</th>
+            <td>MySQL 8.0（SSL/TLS暗号化接続）</td>
+        </tr>
+        <tr>
+            <th>通信セキュリティ</th>
+            <td>常時SSL/TLS（HTTPS）暗号化通信（TLS 1.2 / 1.3）</td>
+        </tr>
+        <tr>
+            <th>実行プログラム</th>
+            <td>Web-API通信クライアント（PHP cURL / REST API連携モジュール）</td>
+        </tr>
+    </table>
+
+    <h2>4. 処理フロー及びWeb-APIの利用方法</h2>
+    <div class="diagram-box">
+【処理フロー図】
+[管理者 / 取引先企業] 
+       │ 企業情報の登録・更新（法人番号・登録番号・企業名）
+       ▼
+[本システム（Webサーバー）]
+       │ HTTPS リクエスト（Web-API / JSON or XML）
+       ▼
+[国税庁 適格請求書発行事業者公表システム Web-API]
+       │ レスポンス（公表情報：登録番号、法人名、所在地、有効性ステータス）
+       ▼
+[本システム（Webサーバー）]
+       │ データの検証・突合（適格請求書発行事業者の有効確認）
+       ▼
+[暗号化データベース（MySQL）] へセキュアに保管・管理
+    </div>
+    <ul>
+        <li><strong>取得データ項目:</strong> 登録番号、事業者名（法人名・屋号）、本店・主たる事務所の所在地、登録年月日、失効・取消情報等の公表情報</li>
+        <li><strong>利用方式:</strong> 取引先情報登録時の個別API照会、および全件データによる定期的なステータス差分確認・照合</li>
+    </ul>
+
+    <h2>5. データの保存・安全管理体制</h2>
+    <ul>
+        <li><strong>アクセス制御:</strong> システムへのアクセスはID・二要素認証により保護され、権限を持つ正規の管理者および認可ユーザーのみに制限。</li>
+        <li><strong>通信及びデータの保護:</strong> 全ての通信経路はHTTPSにより暗号化。データベースはクラウド上のセキュア領域に配置され、外部からの不正直接アクセスを遮断。</li>
+        <li><strong>バックアップ及びログ管理:</strong> データの定期バックアップを実施するとともに、APIアクセス履歴・操作ログを記録・保存し、定期的な監査を実施。</li>
+    </ul>
+
+    <h2>6. 利用者の把握及び管理方法</h2>
+    <p>
+        本システムの利用者は、自社の業務担当者および認証済みの取引先企業に限定されます。ログイン管理およびセッション管理を通じて「いつ」「誰が」「どの情報」を閲覧・処理したかの証跡ログをサーバーに記録し、不正利用や第三者への情報漏洩を防止します。
+    </p>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>J-ALG 業務設計・運用引継ぎ書（A4印刷用）</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* === 印刷・A4設定 === */
+        @page {
+            size: A4 portrait;
+            margin: 14mm 16mm 14mm 16mm;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        body {
+            font-family: 'Inter', 'Noto Sans JP', sans-serif;
+            color: #1e293b;
+            background-color: #f1f5f9;
+            margin: 0;
+            padding: 20px;
+            font-size: 9.5pt;
+            line-height: 1.55;
+        }
+
+        .sheet {
+            background: white;
+            width: 210mm;
+            min-height: 297mm;
+            margin: 0 auto 20px auto;
+            padding: 16mm 18mm;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            position: relative;
+            box-sizing: border-box;
+        }
+
+        @media print {
+            body {
+                background: none;
+                padding: 0;
+            }
+            .sheet {
+                box-shadow: none;
+                margin: 0;
+                width: 100%;
+                min-height: auto;
+                page-break-after: always;
+            }
+            .no-print {
+                display: none !important;
+            }
+        }
+
+        /* ヘッダー */
+        .doc-header {
+            border-bottom: 2px solid #0284c7;
+            padding-bottom: 8px;
+            margin-bottom: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+        .doc-title-box h1 {
+            font-size: 15pt;
+            margin: 0 0 4px 0;
+            color: #0f172a;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .doc-title-box p {
+            font-size: 8.5pt;
+            color: #64748b;
+            margin: 0;
+        }
+        .doc-meta {
+            text-align: right;
+            font-size: 8pt;
+            color: #475569;
+        }
+
+        /* セクション見出し */
+        h2.sec-title {
+            font-size: 11pt;
+            color: #0f172a;
+            border-left: 4px solid #0284c7;
+            padding-left: 8px;
+            margin: 14px 0 8px 0;
+            font-weight: 700;
+            background: #f8fafc;
+            padding-top: 3px;
+            padding-bottom: 3px;
+        }
+
+        h3.sub-title {
+            font-size: 9.5pt;
+            color: #0369a1;
+            margin: 10px 0 4px 0;
+            font-weight: 700;
+        }
+
+        p {
+            margin: 0 0 6px 0;
+            text-align: justify;
+        }
+
+        /* カード・枠線 */
+        .card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 10px 12px;
+            margin-bottom: 10px;
+        }
+
+        .highlight-box {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-left: 4px solid #2563eb;
+            border-radius: 4px;
+            padding: 8px 12px;
+            margin-bottom: 10px;
+            font-size: 9pt;
+        }
+
+        .warning-box {
+            background: #fff7ed;
+            border: 1px solid #fed7aa;
+            border-left: 4px solid #ea580c;
+            border-radius: 4px;
+            padding: 8px 12px;
+            margin-bottom: 10px;
+            font-size: 9pt;
+        }
+
+        /* テーブル */
+        table.spec-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 8px 0;
+            font-size: 8.5pt;
+        }
+        table.spec-table th, table.spec-table td {
+            border: 1px solid #cbd5e1;
+            padding: 5px 8px;
+            vertical-align: middle;
+        }
+        table.spec-table th {
+            background: #f1f5f9;
+            color: #334155;
+            font-weight: 600;
+            text-align: left;
+            width: 25%;
+        }
+
+        /* フロー図ボックス */
+        .flow-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 10px;
+            margin: 8px 0 12px 0;
+            gap: 6px;
+        }
+        .flow-step {
+            flex: 1;
+            background: white;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            padding: 6px 8px;
+            text-align: center;
+            font-size: 8pt;
+        }
+        .flow-step .step-num {
+            font-size: 7.5pt;
+            font-weight: 700;
+            color: #0284c7;
+            display: block;
+            margin-bottom: 2px;
+        }
+        .flow-step .step-title {
+            font-weight: 600;
+            color: #0f172a;
+            font-size: 8.5pt;
+        }
+        .flow-arrow {
+            color: #94a3b8;
+            font-weight: bold;
+            font-size: 11pt;
+        }
+
+        /* チェックリスト */
+        ul.checklist {
+            list-style: none;
+            padding-left: 0;
+            margin: 6px 0;
+        }
+        ul.checklist li {
+            position: relative;
+            padding-left: 20px;
+            margin-bottom: 4px;
+            font-size: 8.5pt;
+        }
+        ul.checklist li::before {
+            content: "□";
+            position: absolute;
+            left: 2px;
+            color: #0284c7;
+            font-weight: bold;
+        }
+
+        .footer-note {
+            position: absolute;
+            bottom: 12mm;
+            left: 18mm;
+            right: 18mm;
+            display: flex;
+            justify-content: space-between;
+            font-size: 7.5pt;
+            color: #94a3b8;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 6px;
+        }
+
+        .btn-print {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #0284c7;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.4);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-print:hover {
+            background: #0369a1;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 印刷ボタン（画面表示時のみ） -->
+    <button class="btn-print no-print" onclick="window.print()">
+        🖨️ A4 PDFとして印刷 / 保存する
+    </button>
+
+    <!-- ==================== SHEET 1 ==================== -->
+    <div class="sheet">
+        <div class="doc-header">
+            <div class="doc-title-box">
+                <h1>J-ALG 業務設計・運用引継ぎ仕様書</h1>
+                <p>上善如水 アライアンス・リードジェネレーター ＆ BtoB販売管理ポータル（pr.eie.tokyo）</p>
+            </div>
+            <div class="doc-meta">
+                作成日: 2026年10月23日<br>
+                システム管理責任者: 菅原<br>
+                運用URL: https://pr.eie.tokyo
+            </div>
+        </div>
+
+        <div class="highlight-box">
+            <strong>【本書の目的】</strong><br>
+            国税庁Web-API（アプリケーションID: <code>Kk8QGG6E7tVRM</code>）の発行に伴い、ポータル作成当時に定めた<strong>「BtoB営業自動化構想」</strong>および<strong>「担当者が行う実務運用」</strong>、そして<strong>「これから実施する具体作業」</strong>を整理・明確化し、運用担当者へスムーズに引き継ぐための公式ドキュメントです。
+        </div>
+
+        <!-- 第1章 -->
+        <h2 class="sec-title">第1章：ポータル作成当時にやろうとしていたこと（全体構想）</h2>
+
+        <h3 class="sub-title">1.1 本ポータル（pr.eie.tokyo）の本来の2大ミッション</h3>
+        <p>
+            本ポータルは、木造壁量計算SaaS「上善如水（2025.eie.jp）」の本体サーバーとは物理的・ドメイン的に完全に分離された<strong>「営業・販売管理専用インフラ」</strong>として設計されました。
+        </p>
+        <table class="spec-table">
+            <tr>
+                <th>① BtoB営業リード獲得<br>（J-ALGエンジン）</th>
+                <td>
+                    国税庁APIおよび公的登録簿から、実在する正規の<strong>「未上場の設計事務所・木造工務店」</strong>を自動抽出し、公式サイト特定・特電法チェックを経て、SendGrid経由で安全に営業DMをコツコツ自動配信する仕組み。
+                </td>
+            </tr>
+            <tr>
+                <th>② 売上・契約管理<br>（Stripeポータル）</th>
+                <td>
+                    2025.eie.jp側で行われるStripe決済（クレジットカード・バーチャル口座振込）のWebhookを受信し、<strong>有料サブスク契約・有効期限・月次売上を一元管理</strong>する仕組み（<code>admin/accounting_portal.php</code>）。
+                </td>
+            </tr>
+        </table>
+        <p style="font-size: 8pt; color: #64748b; margin-top: -2px;">
+            ※ なお、QAサポートや一般ユーザー向けフォーラムは、方針転換により「eie.jp本体側」で集約運用することが決定しています。
+        </p>
+
+        <h3 class="sub-title">1.2 なぜ「国税庁API起点」で「コツコツ送信」なのか？</h3>
+        <p>
+            ネットの適当なリスト業者やキーワード検索に頼る営業メールは、廃業・実体不明・スパム判定のリスクが高く、ドメインを汚染します。本システムは以下の思想を徹底しています。
+        </p>
+        <ul style="margin: 4px 0 8px 18px; padding: 0; font-size: 8.5pt;">
+            <li><strong>公的データ起点（実在性100%）:</strong> 国税庁の法人番号データ（埼玉県・東京都等）から実在する正規事業者を抽出。</li>
+            <li><strong>特電法（特定電子メール法）の厳格順守:</strong> クローラーが企業サイト内を巡回し、「営業お断り」「セールス禁止」等の表記があれば自動で除外（オプトアウトフラグを付与）。</li>
+            <li><strong>1日50〜100通の「人間らしい」分散配信:</strong> 機械的な一斉配信ではなく、1通ごとに3〜8分のランダム待機を挟み、平日の日中（10:00〜16:00）に静かに配信。SendGridの無料枠（1日100通）の範囲内で高い到達率を維持。</li>
+        </ul>
+
+        <!-- データフロー図 -->
+        <h3 class="sub-title">1.3 システム連携＆データ処理フロー</h3>
+        <div class="flow-container">
+            <div class="flow-step">
+                <span class="step-num">Step 1 (夜間01:00)</span>
+                <span class="step-title">国税庁API</span>
+                <div>埼玉/東京等の法人データ取得</div>
+            </div>
+            <span class="flow-arrow">➔</span>
+            <div class="flow-step">
+                <span class="step-num">Step 2 (夜間03:00)</span>
+                <span class="step-title">Google検索 API</span>
+                <div>公式WEBサイトを自動特定</div>
+            </div>
+            <span class="flow-arrow">➔</span>
+            <div class="flow-step">
+                <span class="step-num">Step 3 (夜間04:00)</span>
+                <span class="step-title">スクレイパー</span>
+                <div>メール抽出＆特電法判定</div>
+            </div>
+            <span class="flow-arrow">➔</span>
+            <div class="flow-step">
+                <span class="step-num">Step 4 (平日日中)</span>
+                <span class="step-title">SendGrid</span>
+                <div>1日最大100通の分散配信</div>
+            </div>
+        </div>
+
+        <div class="footer-note">
+            <span>木造壁量計算WEB「上善如水」運用資料</span>
+            <span>Page 1 / 2</span>
+        </div>
+    </div>
+
+    <!-- ==================== SHEET 2 ==================== -->
+    <div class="sheet">
+        <div class="doc-header">
+            <div class="doc-title-box">
+                <h1>J-ALG 業務設計・運用引継ぎ仕様書</h1>
+                <p>運用担当者の実務オペレーション ＆ 今後の実装ロードマップ</p>
+            </div>
+            <div class="doc-meta">
+                作成日: 2026年10月23日<br>
+                システム管理責任者: 菅原
+            </div>
+        </div>
+
+        <!-- 第2章 -->
+        <h2 class="sec-title">第2章：実際に担当者がやる予定だったこと（実務オペレーション）</h2>
+        <p>
+            システム自体はCronバッチにより完全自動化されていますが、誤送信や法令違反を防ぐため<strong>「ヒューマン・イン・ザ・ループ（人間の目視確認）」</strong>を挟む設計になっています。
+        </p>
+
+        <h3 class="sub-title">2.1 担当者の日次ルーティン（1日5分〜10分）</h3>
+        <table class="spec-table">
+            <tr>
+                <th style="width: 28%;">① 抽出リードの承認<br>（朝 09:30 ごろ）</th>
+                <td>
+                    管理画面（<code>/api/companies.php</code> 連動UI）を開き、前夜に自動抽出された企業リスト一覧を確認。<br>
+                    <strong>「明らかな同業他社」や「既存取引先」が含まれていないか目視し、【一括承認（Approve）】ボタンをクリック。</strong><br>
+                    ※ 承認された企業のみが当日の配信キューへ投入されます。
+                </td>
+            </tr>
+            <tr>
+                <th>② 配信結果のモニタリング<br>（夕方 17:00 ごろ）</th>
+                <td>
+                    当日の送信完了数、エラー数、バウンス（不達）数を確認。<br>
+                    ※ バウンスや迷惑メール報告はWebhookで自動的に「送信停止（オプトアウト）」されますが、クレーム等の個別連絡があれば対象企業を即座に「配信拒否」へ変更。
+                </td>
+            </tr>
+            <tr>
+                <th>③ 売上・サブスク確認<br>（随時）</th>
+                <td>
+                    <code>/admin/accounting_portal.php</code> にて、2025.eie.jpからのStripe決済完了ログ、今月累計売上、アクティブ契約者数を確認。
+                </td>
+            </tr>
+        </table>
+
+        <!-- 第3章 -->
+        <h2 class="sec-title">第3章：これから行うこと（実装・準備ロードマップ）</h2>
+
+        <div class="warning-box">
+            <strong>【重要】メーラー（SendGrid）および送信ドメインの現状確認が必要です</strong><br>
+            DM送信エンジンとして使用するクラウドメール配信サービスは <strong>SendGrid</strong> です。長期間経過しているため、アカウントの有効期限、パスワード、および送信者ドメイン認証（Sender Authentication）の確認が最初のステップとなります。
+        </div>
+
+        <h3 class="sub-title">3.1 準備作業チェックリスト（担当者側アクション）</h3>
+        <ul class="checklist">
+            <li><strong>SendGridアカウントの確認:</strong> 登録メールアドレス・パスワードで SendGrid へログインできるか確認する。</li>
+            <li><strong>送信専用ドメインの準備:</strong> <code>eie.tokyo</code>（送信元アドレス: <code>pr@eie.tokyo</code>）のDNS設定（SPF/DKIM）およびメール受信設定が有効か確認。</li>
+            <li><strong>メール文面テンプレートの確定:</strong> 建築士事務所向け、木造工務店向けの営業メール文面（件名・本文）の準備。</li>
+        </ul>
+
+        <h3 class="sub-title">3.2 システム実装ステップ（AIエージェント側アクション）</h3>
+        <table class="spec-table">
+            <tr>
+                <th style="width: 25%;">Phase 1<br>API疎通確認</th>
+                <td>
+                    取得した国税庁アプリケーションID（<code>Kk8QGG6E7tVRM</code>）を <code>.env</code> に設定し、法人番号APIへの接続疎通テストスクリプトを実行。正常に企業名・所在地が返ることを確認。
+                </td>
+            </tr>
+            <tr>
+                <th>Phase 2<br>インポート機能完成</th>
+                <td>
+                    <code>src/NtaApiImporter.php</code> に実際のAPIリクエストロジック（埼玉県・東京都等の指定地域抽出）を実装し、<code>cron/import_batch.php</code> と連動。
+                </td>
+            </tr>
+            <tr>
+                <th>Phase 3<br>SendGrid疎通テスト</th>
+                <td>
+                    担当者様のSendGrid復旧確認後、テストメール送信を実施し、ランダム待機（3〜8分）とWebhookの動作を再確認。
+                </td>
+            </tr>
+            <tr>
+                <th>Phase 4<br>本番自動運転開始</th>
+                <td>
+                    Cronバッチを本番稼働させ、1日50〜100件のペースで自動収集・承認・分散配信をスタート。
+                </td>
+            </tr>
+        </table>
+
+        <div class="footer-note">
+            <span>木造壁量計算WEB「上善如水」運用資料</span>
+            <span>Page 2 / 2</span>
+        </div>
+    </div>
+
+</body>
+</html>
