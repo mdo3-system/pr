@@ -52,8 +52,8 @@ class NtaApiImporter {
         }
 
         $encodedKeyword = urlencode($keyword);
-        // type=12: Unicode XML
-        $url = "https://api.houjin-bangou.nta.go.jp/4/name?id={$this->apiId}&name={$encodedKeyword}&address={$prefectureCode}&type=12&mode=1&page={$page}";
+        // type=12: Unicode XML, divide: 分割番号 (1..divideSize)
+        $url = "https://api.houjin-bangou.nta.go.jp/4/name?id={$this->apiId}&name={$encodedKeyword}&address={$prefectureCode}&type=12&mode=1&divide={$page}";
 
         $ch = curl_init();
         curl_setopt_array($ch, [
@@ -78,7 +78,9 @@ class NtaApiImporter {
             throw new RuntimeException("国税庁APIレスポンスのXMLパースに失敗しました。");
         }
 
-        $totalCount = (int)($xml->count ?? 0);
+        $totalCount   = (int)($xml->count ?? 0);
+        $divideNumber = (int)($xml->divideNumber ?? $page);
+        $divideSize   = (int)($xml->divideSize ?? 1);
         $corps = [];
 
         if (isset($xml->corporation)) {
@@ -104,8 +106,10 @@ class NtaApiImporter {
         }
 
         return [
-            'count'        => $totalCount,
-            'corporations' => $corps
+            'count'         => $totalCount,
+            'divide_number' => $divideNumber,
+            'divide_size'   => $divideSize,
+            'corporations'  => $corps
         ];
     }
 
@@ -190,6 +194,8 @@ class NtaApiImporter {
         // 国税庁APIから取得
         $apiResult = $this->fetchCorporationsFromApi($prefCode, $keyword, $page);
         $totalRecords = $apiResult['count'];
+        $divideNumber = $apiResult['divide_number'];
+        $divideSize   = $apiResult['divide_size'];
         $corps = $apiResult['corporations'];
 
         $imported = 0;
@@ -197,38 +203,38 @@ class NtaApiImporter {
             $imported = $this->importCompanies($corps);
         }
 
-        // ページネーションおよび完了判定
-        // 1ページ最大50件想定。取得件数が0件または総件数に達した場合は完了
-        $isCompleted = empty($corps) || ($page * 50 >= $totalRecords) || (count($corps) < 50);
+        // ページネーションおよび完了判定 (XMLの divideNumber / divideSize を基準に判定)
+        $isCompleted = empty($corps) || ($divideSize === 0) || ($divideNumber >= $divideSize);
 
         if ($isCompleted) {
             $upSql = "UPDATE nta_extract_progress 
                       SET status = 'completed', 
                           total_records = :total,
-                          imported_count = imported_count + :imp,
+                          imported_count = :total,
                           current_page = 1,
                           next_available_at = DATE_ADD(NOW(), INTERVAL 180 DAY),
                           updated_at = NOW()
                       WHERE id = :id";
             $this->pdo->prepare($upSql)->execute([
                 ':total' => $totalRecords,
-                ':imp'   => $imported,
                 ':id'    => $regionId
             ]);
-            $statusText = "全件抽出完了（180日間の再抽出ロックを適用）";
+            $statusText = "全件抽出完了 ({$divideNumber}/{$divideSize})（180日間の再抽出ロックを適用）";
         } else {
+            $nextPage = $divideNumber + 1;
             $upSql = "UPDATE nta_extract_progress 
-                      SET current_page = current_page + 1,
+                      SET current_page = :next_page,
                           total_records = :total,
                           imported_count = imported_count + :imp,
                           updated_at = NOW()
                       WHERE id = :id";
             $this->pdo->prepare($upSql)->execute([
-                ':total' => $totalRecords,
-                ':imp'   => $imported,
-                ':id'    => $regionId
+                ':next_page' => $nextPage,
+                ':total'     => $totalRecords,
+                ':imp'       => $imported,
+                ':id'        => $regionId
             ]);
-            $statusText = "次ページ ({$page} -> " . ($page + 1) . ") へ進捗を保存";
+            $statusText = "次ページ ({$divideNumber}/{$divideSize} -> {$nextPage}) へ進捗を保存";
         }
 
         return [

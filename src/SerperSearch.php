@@ -51,4 +51,54 @@ class SerperSearch {
     public static function buildQuery(string $cleanName, string $city): string {
         return "{$cleanName} {$city} (設計事務所 OR 工務店 OR 建築)";
     }
+
+    /**
+     * Serper API (Google Search) を呼び出し、企業の公式WEBサイトURLを特定する
+     *
+     * @param string $cleanName クリーン企業名
+     * @param string $city 市区町村名
+     * @return string|null 特定された公式URL（見つからない場合は null）
+     * @throws RuntimeException API通信エラー時
+     */
+    public function searchOfficialUrl(string $cleanName, string $city): ?string {
+        if (empty($this->apiKey)) {
+            throw new RuntimeException("Serper API Key (SERPER_API_KEY) が未設定です。");
+        }
+
+        $query = self::buildQuery($cleanName, $city);
+        $payload = json_encode([
+            'q'   => $query,
+            'gl'  => 'jp',
+            'hl'  => 'ja',
+            'num' => 5
+        ], JSON_UNESCAPED_UNICODE);
+
+        $ch = curl_init('https://google.serper.dev/search');
+        curl_setopt_array($ch, [
+            CURLOPT_POST           => true,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT        => 15,
+            CURLOPT_HTTPHEADER     => [
+                'X-API-KEY: ' . $this->apiKey,
+                'Content-Type: application/json'
+            ],
+            CURLOPT_POSTFIELDS     => $payload
+        ]);
+
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlErr  = curl_error($ch);
+        curl_close($ch);
+
+        if ($httpCode !== 200 || empty($response)) {
+            throw new RuntimeException("Serper API Error HTTP: {$httpCode}, Error: {$curlErr}");
+        }
+
+        $data = json_decode($response, true);
+        if (!is_array($data) || empty($data['organic'])) {
+            return null;
+        }
+
+        return self::extractOfficialUrl($data['organic']);
+    }
 }
