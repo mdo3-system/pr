@@ -7,9 +7,20 @@
 class SerperSearch {
     private $apiKey;
     private static $ignoredDomains = [
+        // 既存ポータル・SNS
         'suumo.jp', 'homes.co.jp', 'itp.ne.jp', 'ekiten.jp', 'houjin.jp',
         'facebook.com', 'instagram.com', 'twitter.com', 'x.com',
-        'bing.com', 'yahoo.co.jp', 'wikipedia.org', 'mapion.co.jp', 'navitime.co.jp'
+        'bing.com', 'yahoo.co.jp', 'wikipedia.org', 'mapion.co.jp', 'navitime.co.jp',
+        // まとめサイト・企業DB・求人系
+        'houzz.jp', 'biz.ne.jp', 'salesnow.jp', 'baseconnect.in',
+        'clip.jp', 'clip-corporation.com', 'nextcity.jp', 'ii-ie2.net',
+        'sumaidea.com', 'cnavi.g-search.or.jp', 'lawplayer.com', 'ienavi.com',
+        'jglobal.jst.go.jp', 'kenzai-navi.com', 'companydata.tsujigawa.com',
+        'toukibo.ai-con.lawyer', 'mailmate.jp', 'doda.jp', 'tenpodesign.com',
+        'xn--pckua2a7gp15o89zb.com',
+        // 建築関連の団体・会員一覧・名簿系
+        'hamaken.jp', 'kanagawa-kentikusikai.com', 'kkj-yokohama1.jp',
+        'nikkenren.com', 'aij.or.jp', 'j-kana.or.jp'
     ];
 
     public function __construct(?string $apiKey = null) {
@@ -17,10 +28,11 @@ class SerperSearch {
     }
 
     /**
-     * ポータルサイト・SNS等の除外対象ドメインか判定する
+     * ポータルサイト・SNS・団体一覧・PDF直リンク等の除外対象URLか判定する
      */
     public static function isIgnoredDomain(string $url): bool {
-        $host = parse_url($url, PHP_URL_HOST);
+        $parsed = parse_url($url);
+        $host = $parsed['host'] ?? '';
         if (!$host) return true;
         $host = strtolower($host);
 
@@ -29,6 +41,13 @@ class SerperSearch {
                 return true;
             }
         }
+
+        // PDFやOfficeファイル等の直リンクを除外
+        $path = strtolower($parsed['path'] ?? '');
+        if (preg_match('/\.(pdf|doc|docx|xls|xlsx|ppt|pptx|zip|csv)$/i', $path)) {
+            return true;
+        }
+
         return false;
     }
 
@@ -70,7 +89,7 @@ class SerperSearch {
             'q'   => $query,
             'gl'  => 'jp',
             'hl'  => 'ja',
-            'num' => 5
+            'num' => 10
         ], JSON_UNESCAPED_UNICODE);
 
         $ch = curl_init('https://google.serper.dev/search');

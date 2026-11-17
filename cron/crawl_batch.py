@@ -60,6 +60,9 @@ def fetch_html(url):
             timeout=REQUEST_TIMEOUT,
             allow_redirects=True,
         )
+        ctype = resp.headers.get("Content-Type", "").lower()
+        if ctype and not any(t in ctype for t in ("text/html", "application/xhtml", "text/plain")):
+            return resp.status_code, ""
         if resp.encoding is None or resp.encoding.lower() == "iso-8859-1":
             resp.encoding = resp.apparent_encoding or "utf-8"
         return resp.status_code, resp.text
@@ -169,19 +172,33 @@ def process_company(cursor, comp):
         if fax and not found_fax:
             found_fax = fax
 
+    is_dup = 0
+    if found_email:
+        cursor.execute(
+            "SELECT id FROM companies WHERE email = %s AND id != %s LIMIT 1",
+            (found_email, cid),
+        )
+        if cursor.fetchone():
+            is_dup = 1
+            cursor.execute(
+                "UPDATE companies SET is_duplicate_email = 1, updated_at = NOW() WHERE email = %s AND id != %s",
+                (found_email, cid),
+            )
+
     cursor.execute(
         """
         UPDATE companies
         SET email = COALESCE(%s, email),
             fax = COALESCE(%s, fax),
             contact_url = COALESCE(%s, contact_url),
+            is_duplicate_email = GREATEST(is_duplicate_email, %s),
             status = 'crawled',
             updated_at = NOW()
         WHERE id = %s
         """,
-        (found_email, found_fax, contact_url, cid),
+        (found_email, found_fax, contact_url, is_dup, cid),
     )
-    return "crawled", (found_email, found_fax)
+    return "crawled", (found_email, found_fax, is_dup)
 
 
 def main():
@@ -222,8 +239,9 @@ def main():
                     print("  [OPT-OUT] #{} {} -> {}".format(comp["id"], comp["name"], detail))
                 else:
                     crawled_cnt += 1
-                    print("  [CRAWLED] #{} {} -> email={}, fax={}".format(
-                        comp["id"], comp["name"], detail[0], detail[1]
+                    dup_tag = " [DUP-EMAIL]" if detail[2] else ""
+                    print("  [CRAWLED]{} #{} {} -> email={}, fax={}".format(
+                        dup_tag, comp["id"], comp["name"], detail[0], detail[1]
                     ))
                 time.sleep(0.5)
 

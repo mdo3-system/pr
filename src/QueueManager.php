@@ -31,6 +31,7 @@ class QueueManager {
                 FROM companies c 
                 WHERE c.status = 'approved' 
                   AND c.is_opt_out = 0 
+                  AND c.is_duplicate_email = 0
                   AND c.email IS NOT NULL 
                   AND c.email != '' 
                   -- ① 累計送信回数キャップ (最大3回まで)

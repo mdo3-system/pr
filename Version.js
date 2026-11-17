@@ -15,5 +15,6 @@
 // - v1.0.8 (2026-07-31): Google Drive API連携コアモジュールの構築、credentials.json生成、初回OAuth認証コールバック実装およびDB拡張
 // - v1.0.9 (2026-10-23): 国税庁Web-API地域巡回進捗管理、同一企業再送防止クールダウン(90日)、送信回数カウント、特電法ワンクリックオプトアウト機能の実装
 // - v1.0.10 (2026-11-18): 国税庁APIページ送り(divide)修正、Serper公式URL特定バッチ(serper_batch.php)新設、Pythonクローラー本番化、crontab登録
+// - v1.0.11 (2026-11-18): Serper除外ドメイン・PDF拡張子強化、偽メール正規表現フィルタ強化、同一メール複数社重複フラグ(is_duplicate_email)追加
 
-window.APP_VERSION = "v1.0.10";
+window.APP_VERSION = "v1.0.11";

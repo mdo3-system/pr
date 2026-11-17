@@ -32,22 +32,40 @@ OPTOUT_KEYWORDS = [
 ]
 
 # 無効メールアドレス除外ドメイン・キーワード
-IGNORED_EMAIL_DOMAINS = ['wix.com', 'sentry.io', 'example.com', 'xxx@', 'domain.com', '.jpg', '.png', '.css']
+IGNORED_EMAIL_DOMAINS = [
+    'wix.com', 'sentry.io', 'example.com', 'xxx@', 'domain.com',
+    '.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp', '.css', '.js', '.woff', '.pdf',
+    'wght@', 'example@', 'bootstrap@', 'yakuhanjp@',
+    'salesnow.jp', 'biz.ne.jp', 'clip.jp', 'houzz.jp', 'baseconnect.in'
+]
+
+VALID_EMAIL_RE = re.compile(r'^[a-zA-Z0-9][a-zA-Z0-9_.+-]*@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*\.[a-zA-Z]{2,10}$')
+
+def is_valid_email(email: str) -> bool:
+    if not email or len(email) > 100 or '..' in email:
+        return False
+    low = email.lower()
+    if any(x in low for x in IGNORED_EMAIL_DOMAINS):
+        return False
+    return bool(VALID_EMAIL_RE.match(email))
 
 def extract_contact_info(html_text: str) -> Tuple[str, str]:
     """
     HTML本文からメールアドレスおよびFAX番号を抽出する
     """
-    raw_emails = set(re.findall(EMAIL_REGEX, html_text))
-    clean_emails = [
-        e for e in raw_emails 
-        if not any(x in e.lower() for x in IGNORED_EMAIL_DOMAINS)
-    ]
-    
+    # mailto: リンクを最優先で抽出
+    mailto_emails = re.findall(r'mailto:([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)', html_text, re.I)
+    valid_mailto = [e for e in mailto_emails if is_valid_email(e)]
+
+    raw_emails = re.findall(EMAIL_REGEX, html_text)
+    clean_emails = [e for e in raw_emails if is_valid_email(e)]
+
+    selected_email = valid_mailto[0] if valid_mailto else (clean_emails[0] if clean_emails else None)
+
     faxes = re.findall(FAX_REGEX, html_text)
     clean_fax = faxes[0] if faxes else None
-    
-    return (clean_emails[0] if clean_emails else None), clean_fax
+
+    return selected_email, clean_fax
 
 def check_opt_out_compliance(html_text: str) -> Tuple[bool, List[str], str]:
     """
