@@ -60,6 +60,9 @@ $currentUser = getAuthenticatedUser();
                 </a>
 
                 <?php if ($currentUser['role'] === 'admin'): ?>
+                    <a href="/admin/leads_manager.php" title="リード精査・承認マネージャー" class="bg-slate-800 hover:bg-slate-700 text-sky-300 text-xs px-3 py-2 rounded-xl border border-slate-700 transition">
+                        <i class="fa-solid fa-building-circle-check"></i> リード精査
+                    </a>
                     <a href="/admin/support_manager.php" title="管理者総合マネージャー" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs px-3 py-2 rounded-xl border border-slate-700 transition">
                         <i class="fa-solid fa-gear"></i> 管理者全画面
                     </a>
